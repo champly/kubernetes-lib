@@ -1,0 +1,11 @@
+docker pull champly/k8s  && \
+docker pull champly/kubernetes-lib && \
+docker pull champly/etcd-amd64 && \
+docker pull champly/k8s-dns-sidecar-amd64 && \
+docker pull champly/kube-scheduler-amd64 && \
+docker pull champly/kube-apiserver-amd64 && \
+docker pull champly/pause-amd64 && \
+docker pull champly/kube-controller-manager-amd64 && \
+docker pull champly/k8s-dns-dnsmasq-nanny-amd64 && \
+docker pull champly/k8s-dns-kube-dns-amd6 && \
+docker pull champly/k8s-dns-kube-dns-amd64
