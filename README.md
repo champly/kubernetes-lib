@@ -1,4 +1,4 @@
-# CentOS7(mini) 安装 Kubernetes 集群（kubeadm方式）
+## CentOS7(mini) 安装 Kubernetes 集群（kubeadm方式）
 
 #### 安装CentOS
 
@@ -131,19 +131,60 @@ docker tag gcr.io/google_containers/pause-amd64 gcr.io/google_containers/pause-a
 docker rmi gcr.io/google_containers/pause-amd64
 ```
 
+4. 添加阿里源
+
+``` bash
+[root@localhost ~]#  cat >> /etc/yum.repos.d/kubernetes.repo << EOF
+[kubernetes]
+name=Kubernetes
+baseurl=https://mirrors.aliyun.com/kubernetes/yum/repos/kubernetes-el7-x86_64/
+enabled=1
+gpgcheck=0
+EOF
+```
+
+5. 查看kubectl kubelet kubeadm kubernetes-cni列表
+
+``` bash
+[root@localhost ~]# yum list kubectl kubelet kubeadm kubernetes-cni
+已加载插件：fastestmirror
+Loading mirror speeds from cached hostfile
+ * base: mirrors.tuna.tsinghua.edu.cn
+ * extras: mirrors.sohu.com
+ * updates: mirrors.sohu.com
+可安装的软件包
+kubeadm.x86_64                                                     1.7.5-0                                              kubernetes
+kubectl.x86_64                                                     1.7.5-0                                              kubernetes
+kubelet.x86_64                                                     1.7.5-0                                              kubernetes
+kubernetes-cni.x86_64                                              0.5.1-0                                              kubernetes
+[root@localhost ~]#
+```
+
+6. 安装kubectl kubelet kubeadm kubernetes-cni
+
+``` bash
+[root@localhost ~]# yum install -y kubectl kubelet kubeadm kubernetes-cni
+```
+
 #### [修改cgroups](https://github.com/kubernetes/kubeadm/issues/103)
 ``` bash
 vi /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
 ```
 > update KUBELET_CGROUP_ARGS=--cgroup-driver=systemd to KUBELET_CGROUP_ARGS=--cgroup-driver=cgroupfs
 
+#### 修改kubelet中的cAdvisor监控的端口，默认为0改为4194，这样就可以通过浏器查看kubelet的监控cAdvisor的web页
 
 ``` bash
-[root@master ~]# systemctl daemon-reload
-[root@master ~]# systemctl restart kubelet
+[root@kub-master ~]# vi /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+```
+> Environment="KUBELET_CADVISOR_ARGS=--cadvisor-port=4194"
+
+#### 启动所有主机上的kubelet服务
+``` bash
+[root@master ~]# systemctl enable kubelet && systemctl start kubelet
 ```
 
-#### 初始化master
+#### 初始化master **master节点上操作**
 
 ``` bash
 [root@master ~]# kubeadm reset && kubeadm init --apiserver-advertise-address=192.168.0.100 --kubernetes-version=v1.7.5 --pod-network-cidr=10.200.0.0/16
@@ -252,16 +293,30 @@ scheduler            Healthy   ok
 controller-manager   Healthy   ok
 etcd-0               Healthy   {"health": "true"}
 [root@master ~]# kubectl get nodes
-NAME      STATUS    AGE       VERSION
-master    Ready     47m       v1.7.5
+NAME      STATUS     AGE       VERSION
+master    Ready      24m       v1.7.5
+node1     NotReady   45s       v1.7.5
+node2     NotReady   7s        v1.7.5
 [root@master ~]# kubectl get pods --all-namespaces
-NAMESPACE     NAME                             READY     STATUS             RESTARTS   AGE
-kube-system   etcd-master                      1/1       Running            3          23m
-kube-system   kube-apiserver-master            1/1       Running            3          23m
-kube-system   kube-controller-manager-master   1/1       Running            3          23m
-kube-system   kube-dns-2425271678-pwd7q        0/3       ErrImagePull       0          52m
-kube-system   kube-flannel-ds-0s9d4            1/2       CrashLoopBackOff   11         10m
-kube-system   kube-proxy-6krxx                 0/1       ImagePullBackOff   0          52m
-kube-system   kube-scheduler-master            1/1       Running            3          23m
+NAMESPACE     NAME                             READY     STATUS              RESTARTS   AGE
+kube-system   etcd-master                      1/1       Running             0          24m
+kube-system   kube-apiserver-master            1/1       Running             0          24m
+kube-system   kube-controller-manager-master   1/1       Running             0          24m
+kube-system   kube-dns-2425271678-h48rw        0/3       ImagePullBackOff    0          25m
+kube-system   kube-flannel-ds-28n3w            1/2       CrashLoopBackOff    13         24m
+kube-system   kube-flannel-ds-ndspr            0/2       ContainerCreating   0          41s
+kube-system   kube-flannel-ds-zvx9j            0/2       ContainerCreating   0          1m
+kube-system   kube-proxy-qxxzr                 0/1       ImagePullBackOff    0          41s
+kube-system   kube-proxy-shkmx                 0/1       ImagePullBackOff    0          25m
+kube-system   kube-proxy-vtk52                 0/1       ContainerCreating   0          1m
+kube-system   kube-scheduler-master            1/1       Running             0          24m
 [root@master ~]#
 ```
+
+#### 如果出现：The connection to the server localhost:8080 was refused - did you specify the right host or port?
+
+> [解决办法：](https://blog.frognew.com/2017/04/kubeadm-install-kubernetes-1.6.html)
+为了使用kubectl访问apiserver，在~/.bash_profile中追加下面的环境变量：
+export KUBECONFIG=/etc/kubernetes/admin.conf
+source ~/.bash_profile
+重新初始化kubectl
