@@ -2,7 +2,7 @@
 
 #### 安装CentOS
 
-1. 安装**net-tools**
+1. 安装 **net-tools**
 ``` bash
 [root@localhost ~]# yum install -y net-tools
 ```
@@ -97,7 +97,7 @@ You need to restart docker to take effect: sudo systemctl restart docker
 [root@localhost ~]# systemctl restart docker
 ```
 
-2. 下载镜像,自己通过[Dockerfile](https://github.com/ChamPly/kubernetes-lib)到[dockerhub](https://hub.docker.com/)生成对镜像,也可以克隆我的
+2. 下载镜像,自己通过[Dockerfile](https://github.com/champly/kubernetes-lib)到[dockerhub](https://hub.docker.com/)生成对镜像,也可以克隆我的
 
 ``` bash
 images=(kube-controller-manager-amd64 etcd-amd64 k8s-dns-sidecar-amd64 kube-proxy-amd64 kube-apiserver-amd64 kube-scheduler-amd64 pause-amd64 k8s-dns-dnsmasq-nanny-amd64 k8s-dns-kube-dns-amd64)
