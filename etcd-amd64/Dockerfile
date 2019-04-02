@@ -1,2 +1,2 @@
-FROM gcr.io/google_containers/etcd-amd64:3.0.17
+FROM gcr.io/google_containers/etcd-amd64:latest
 MAINTAINER ChamPly <champly1993@gmail.com>

@@ -1,2 +1,2 @@
-FROM gcr.io/google_containers/k8s-dns-dnsmasq-nanny-amd64:1.14.5
+FROM gcr.io/google_containers/k8s-dns-dnsmasq-nanny-amd64:latest
 MAINTAINER ChamPly <champly1993@gmail.com>
